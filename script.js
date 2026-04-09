@@ -418,7 +418,12 @@ const THITHI_BASE_DEGREES = {
   EKA: 240, DWA: 264, TRY: 288, CHD: 312,
   POU: 336, AMA: 336
 };
-
+const THITHI_INDEX = {
+  PRA: 1, DWI: 2, TRU: 3, CHA: 4, PAN: 5,
+  SHA: 6, SAP: 7, ASH: 8, NAV: 9, DAS: 10,
+  EKA: 11, DWA: 12, TRY: 13, CHD: 14,
+  POU: 15, AMA: 30
+};
 const CACHE_BUSTER = "?v=" + Date.now();
 // ---- GLOBAL TIME SETUP (runs once) ----
 const nowLocal = new Date();
@@ -608,8 +613,9 @@ async function loadElementData(def_element, nowUTC) {
         const remainingDeg = 360 - completedDeg;
         
         drawPakshamDegreesPie({
-          completedDeg,
-          remainingDeg,
+          thithiCode: code,                 // <-- ADD THIS
+          elapsedMs,
+          remainingMs,
           paksham: resolvedExtras.paksham?.code
         });
         tryRenderCombinedExtras();
@@ -762,59 +768,97 @@ function renderElementBlock({
   remainingColor);
 }
 
-function drawPakshamDegreesPie({ completedDeg, remainingDeg, paksham }) {
-  const percent = (completedDeg / 360) * 100;
-  const pakshamLabel =
-  paksham === "SHU" ? "Shukla" :
-  paksham === "KRI" ? "Krishna" : "Paksham";const canvas = document.getElementById("pakshamDegreesPie");
+function drawPakshamDegreesPie({ thithiCode, elapsedMs, remainingMs, paksham }) {
+  const canvas = document.getElementById("pakshamDegreesPie");
   if (!canvas) return;
 
   const ctx = canvas.getContext("2d");
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  const total = completedDeg + remainingDeg;
-  if (total <= 0) return;
+  const tIndex = THITHI_INDEX[thithiCode];
+  if (!tIndex) return;
 
-  const fraction = completedDeg / total;
+  const totalMs = elapsedMs + remainingMs;
+  if (totalMs <= 0) return;
 
-  // Geometry (same style as your pies)
+  const fraction = elapsedMs / totalMs;
+
+  // --- Geometry ---
   const radius  = Math.min(canvas.width, canvas.height) * 0.25;
   const centerX = canvas.width / 2;
   const centerY = canvas.height / 2 - 20;
-  const startAngle = -0.5 * Math.PI;
 
-  // Color logic
-  let completedColor, remainingColor;
+  // --- Paksham logic ---
+  let localIndex, isKrishna;
 
-  if (paksham === "SHU") {
-    completedColor = "#FFFFFF"; // completed = white
-    remainingColor = "#000000";
+  if (tIndex <= 15) {
+    isKrishna = false;          // Shukla
+    localIndex = tIndex;        // 1–15
   } else {
-    completedColor = "#000000"; // completed = black
-    remainingColor = "#FFFFFF";
+    isKrishna = true;           // Krishna
+    localIndex = tIndex - 15;   // 1–15
   }
 
-  // --- Remaining ---
-  ctx.beginPath();
-  ctx.moveTo(centerX, centerY);
-  ctx.arc(
-    centerX, centerY, radius,
-    startAngle + fraction * 2 * Math.PI,
-    startAngle + 2 * Math.PI
-  );
-  ctx.fillStyle = remainingColor;
-  ctx.fill();
+  // --- Colors ---
+  let fillColor, bgColor, pakshamLabel;
 
-  // --- Completed ---
+  if (isKrishna) {
+    fillColor = "#000000";
+    bgColor = "#FFFFFF";
+    pakshamLabel = "Krishna";
+  } else {
+    fillColor = "#FFFFFF";
+    bgColor = "#000000";
+    pakshamLabel = "Shukla";
+  }
+
+  // --- Clip to circle ---
+  ctx.save();
   ctx.beginPath();
-  ctx.moveTo(centerX, centerY);
-  ctx.arc(
-    centerX, centerY, radius,
-    startAngle,
-    startAngle + fraction * 2 * Math.PI
+  ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+  ctx.clip();
+
+  // --- Background ---
+  ctx.fillStyle = bgColor;
+  ctx.fillRect(centerX - radius, centerY - radius, radius * 2, radius * 2);
+
+  // --- Bands ---
+  const totalBands = 15;
+  const bandHeight = (radius * 2) / totalBands;
+  const bottom = centerY + radius;
+
+  ctx.fillStyle = fillColor;
+
+  // FULL bands
+  for (let i = 0; i < localIndex - 1; i++) {
+    const y = bottom - (i + 1) * bandHeight;
+    ctx.fillRect(centerX - radius, y, radius * 2, bandHeight);
+  }
+
+  // PARTIAL band (current thithi)
+  const partialHeight = bandHeight * fraction;
+  const y = bottom - localIndex * bandHeight;
+
+  ctx.fillRect(
+    centerX - radius,
+    y + (bandHeight - partialHeight),
+    radius * 2,
+    partialHeight
   );
-  ctx.fillStyle = completedColor;
-  ctx.fill();
+
+  // --- Band separators ---
+  ctx.strokeStyle = "rgba(0,0,0,0.2)";
+  ctx.lineWidth = 1;
+
+  for (let i = 0; i <= totalBands; i++) {
+    const yLine = bottom - i * bandHeight;
+    ctx.beginPath();
+    ctx.moveTo(centerX - radius, yLine);
+    ctx.lineTo(centerX + radius, yLine);
+    ctx.stroke();
+  }
+
+  ctx.restore();
 
   // --- Outer border ---
   ctx.beginPath();
@@ -822,86 +866,17 @@ function drawPakshamDegreesPie({ completedDeg, remainingDeg, paksham }) {
   ctx.strokeStyle = "#333";
   ctx.stroke();
 
-  // --- Red demarcation line ---
-  const angle = startAngle + fraction * 2 * Math.PI;
-
-  ctx.beginPath();
-  ctx.moveTo(centerX, centerY);
-  ctx.lineTo(
-    centerX + Math.cos(angle) * (radius * 0.95),
-    centerY + Math.sin(angle) * (radius * 0.95)
-  );
-  ctx.strokeStyle = "red";
-  ctx.lineWidth = 3;
-  ctx.stroke();
-
-  ctx.lineWidth = 1;
-
+  // --- Label ---
   ctx.fillStyle = "#000";
   ctx.font = "16px Arial";
   ctx.textAlign = "center";
-  
+
   ctx.fillText(
-  `${pakshamLabel} Paksham in progress with ${completedDeg.toFixed(2)} degrees completed`,
-  centerX,
-  centerY + radius + 40
+    `${pakshamLabel} Paksham - Thithi ${localIndex} in progress`,
+    centerX,
+    centerY + radius + 36
   );
-
-  
-  // ✅ ADD FROM HERE ↓↓↓
-const percentComplete = +(percent.toFixed(2));
-const percentRemaining = +(100 - percentComplete).toFixed(2);
-
-ctx.textAlign = "left";
-ctx.font = "16px Arial";
-
-let x = 20;
-const y = centerY + radius + 65;
-  
-// Complete
-ctx.fillStyle = completedColor;
-ctx.fillRect(x, y, 10, 10);
-ctx.strokeStyle = "#666";
-ctx.strokeRect(x, y, 10, 10);
-
-ctx.fillStyle = "#000";
-ctx.fillText(`Complete: ${percentComplete}%`, x + 16, y + 9);
-
-x += ctx.measureText(`Complete: ${percentComplete}%`).width + 30;
-
-// Remaining
-ctx.fillStyle = remainingColor;
-ctx.fillRect(x, y, 10, 10);
-ctx.strokeStyle = "#666";
-ctx.strokeRect(x, y, 10, 10);
-
-ctx.fillStyle = "#000";
-ctx.fillText(`Remaining: ${percentRemaining}%`, x + 16, y + 9);
-// ✅ END HERE ↑↑↑
-  
-  // --- Angle markers (outside circle) ---
-  ctx.fillStyle = "red";
-  ctx.font = "12px Arial";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  
-  const markers = [
-  { label: "0", value: 0 },
-  { label: "25", value: 0.25 },
-  { label: "50", value: 0.50 },
-  { label: "75", value: 0.75 }
-];
-
-markers.forEach(m => {
-  const markerAngle = startAngle + m.value * 2 * Math.PI;
-
-  const x = centerX + Math.cos(markerAngle) * (radius * 1.15);
-  const y = centerY + Math.sin(markerAngle) * (radius * 1.15);
-
-  ctx.fillText(m.label, x, y);
-});
 }
-
 /***********************
  * PIE CHART
  ***********************/
