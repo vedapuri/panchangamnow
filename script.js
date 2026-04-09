@@ -789,26 +789,33 @@ function drawPakshamDegreesPie({ thithiCode, elapsedMs, remainingMs, paksham }) 
   const centerY = canvas.height / 2 - 20;
 
   // --- Paksham logic ---
-  let localIndex, isKrishna;
-
-  if (tIndex <= 15) {
-    isKrishna = false;          // Shukla
-    localIndex = tIndex;        // 1–15
+  const isKrishna = (paksham === "KRI");
+  
+  // local index ALWAYS 1–15
+  let localIndex;
+  
+  if (isKrishna) {
+    // Krishna runs AFTER Pournami
+    localIndex = tIndex <= 15 ? tIndex : (tIndex - 15);
   } else {
-    isKrishna = true;           // Krishna
-    localIndex = tIndex - 15;   // 1–15
+    // Shukla runs from Prathama to Pournami
+    localIndex = tIndex <= 15 ? tIndex : (tIndex - 15);
   }
 
   // --- Colors ---
   let fillColor, bgColor, pakshamLabel;
 
+  const isKrishna = (paksham === "KRI");
+
+  let fillColor, bgColor, pakshamLabel;
+  
   if (isKrishna) {
-    fillColor = "#000000";
-    bgColor = "#FFFFFF";
+    fillColor = "#000000";   // black fills in Krishna
+    bgColor   = "#FFFFFF";
     pakshamLabel = "Krishna";
   } else {
-    fillColor = "#FFFFFF";
-    bgColor = "#000000";
+    fillColor = "#FFFFFF";   // white fills in Shukla
+    bgColor   = "#000000";
     pakshamLabel = "Shukla";
   }
 
