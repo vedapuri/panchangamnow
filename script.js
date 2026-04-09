@@ -858,8 +858,11 @@ function drawPakshamDegreesPie({ thithiCode, elapsedMs, remainingMs, paksham }) 
   ctx.font = "16px Arial";
   ctx.textAlign = "center";
 
+  const thithiName =
+  ELEMENT_DEFINITIONS.thithi.mapping[thithiCode]?.name || localIndex;
+
   ctx.fillText(
-    `${pakshamLabel} Paksham - Thithi ${localIndex} in progress`,
+  `${pakshamLabel} Paksham - Thithi ${thithiName} in progress`,
     centerX,
     centerY + radius + 36
   );
