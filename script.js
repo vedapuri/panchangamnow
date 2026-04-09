@@ -788,36 +788,16 @@ function drawPakshamDegreesPie({ thithiCode, elapsedMs, remainingMs, paksham }) 
   const centerX = canvas.width / 2;
   const centerY = canvas.height / 2 - 20;
 
-  // --- Paksham logic ---
+  // --- Paksham ---
   const isKrishna = (paksham === "KRI");
-  
-  // local index ALWAYS 1–15
-  let localIndex;
-  
-  if (isKrishna) {
-    // Krishna runs AFTER Pournami
-    localIndex = tIndex <= 15 ? tIndex : (tIndex - 15);
-  } else {
-    // Shukla runs from Prathama to Pournami
-    localIndex = tIndex <= 15 ? tIndex : (tIndex - 15);
-  }
+
+  // Always map to 1–15 within paksham
+  const localIndex = tIndex <= 15 ? tIndex : (tIndex - 15);
 
   // --- Colors ---
-  let fillColor, bgColor, pakshamLabel;
-
-  const isKrishna = (paksham === "KRI");
-
-  let fillColor, bgColor, pakshamLabel;
-  
-  if (isKrishna) {
-    fillColor = "#000000";   // black fills in Krishna
-    bgColor   = "#FFFFFF";
-    pakshamLabel = "Krishna";
-  } else {
-    fillColor = "#FFFFFF";   // white fills in Shukla
-    bgColor   = "#000000";
-    pakshamLabel = "Shukla";
-  }
+  const fillColor   = isKrishna ? "#000000" : "#FFFFFF";
+  const bgColor     = isKrishna ? "#FFFFFF" : "#000000";
+  const pakshamLabel = isKrishna ? "Krishna" : "Shukla";
 
   // --- Clip to circle ---
   ctx.save();
@@ -842,7 +822,7 @@ function drawPakshamDegreesPie({ thithiCode, elapsedMs, remainingMs, paksham }) 
     ctx.fillRect(centerX - radius, y, radius * 2, bandHeight);
   }
 
-  // PARTIAL band (current thithi)
+  // PARTIAL band
   const partialHeight = bandHeight * fraction;
   const y = bottom - localIndex * bandHeight;
 
