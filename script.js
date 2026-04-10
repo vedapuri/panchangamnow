@@ -796,11 +796,6 @@ function drawPakshamDegreesPie({ thithiCode, elapsedMs, remainingMs, paksham }) 
   const bgColor     = isKrishna ? "#FFFFFF" : "#000000";
   const pakshamLabel = isKrishna ? "Krishna" : "Shukla";
 
-  // --- Clip to circle ---
-  ctx.beginPath();
-  ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-  ctx.clip();
-
   // --- Background ---
   ctx.fillStyle = bgColor;
   ctx.fillRect(centerX - radius, centerY - radius, radius * 2, radius * 2);
@@ -811,41 +806,38 @@ function drawPakshamDegreesPie({ thithiCode, elapsedMs, remainingMs, paksham }) 
   const bottom = centerY + radius;
 
   ctx.fillStyle = fillColor;
-  // --- Step 1: draw full background (dark or light)
+// --- Step 1: draw full background
 ctx.fillStyle = bgColor;
 ctx.beginPath();
 ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
 ctx.fill();
 
-// --- Step 2: draw curved illuminated portion
+// --- Step 2: draw shifted circle (moon light)
+ctx.globalCompositeOperation = "source-over";
+
 ctx.beginPath();
 
-// phase 0 → 1
 let phase = (localIndex - 1 + fraction) / 14;
-
-// convert to -1 → +1
 let k = Math.cos(phase * Math.PI);
 
-// flip for Krishna
 if (isKrishna) k *= -1;
 
-// horizontal offset
 let dx = k * radius;
 
-// draw ellipse-like shape using arc trick
+// Draw the light portion
 ctx.arc(centerX + dx, centerY, radius, 0, 2 * Math.PI);
-
-// clip with main circle
-ctx.globalCompositeOperation = "source-in";
-
-ctx.beginPath();
-ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
 ctx.fillStyle = fillColor;
 ctx.fill();
 
+// --- Step 3: clip to main circle
+ctx.globalCompositeOperation = "destination-in";
+
+ctx.beginPath();
+ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+ctx.fill();
+
 // reset
-ctx.globalCompositeOperation = "source-over";
-  
+ctx.globalCompositeOperation = "source-over";  
   // --- Outer border ---
   ctx.beginPath();
   ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
