@@ -822,10 +822,10 @@ let k = Math.cos(phase * Math.PI);
 
 if (isKrishna) k *= -1;
 
-let dx = k * radius;
+let dy = k * radius;
 
 // Draw the light portion
-ctx.arc(centerX + dx, centerY, radius, 0, 2 * Math.PI);
+ctx.arc(centerX, centerY + dy, radius, 0, 2 * Math.PI);
 ctx.fillStyle = fillColor;
 ctx.fill();
 
