@@ -816,35 +816,39 @@ function drawPakshamDegreesPie({ thithiCode, elapsedMs, remainingMs, paksham }) 
 
   ctx.fillStyle = fillColor;
 
-  // FULL bands
-  for (let i = 0; i < localIndex - 1; i++) {
-    const y = bottom - (i + 1) * bandHeight;
-    ctx.fillRect(centerX - radius, y, radius * 2, bandHeight);
+    // --- Moon shape ---
+  ctx.beginPath();
+  
+  // Full circle
+  ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+  
+  // Compute phase
+  let phase = (localIndex - 1 + fraction) / 14; // 0 → 1
+  let curveStrength = Math.cos(phase * Math.PI);
+  
+  if (isKrishna) {
+    curveStrength *= -1;
   }
-
-  // PARTIAL band
-  const partialHeight = bandHeight * fraction;
-  const y = bottom - localIndex * bandHeight;
-
-  ctx.fillRect(
-    centerX - radius,
-    y + (bandHeight - partialHeight),
-    radius * 2,
-    partialHeight
+  
+  // Control point (this creates curvature)
+  const offset = curveStrength * radius * 0.8;
+  
+  ctx.moveTo(centerX, centerY - radius);
+  
+  // Draw curved divider
+  ctx.quadraticCurveTo(
+    centerX + offset,
+    centerY,
+    centerX,
+    centerY + radius
   );
-
-  // --- Band separators ---
-  ctx.strokeStyle = "rgba(0,0,0,0.2)";
-  ctx.lineWidth = 1;
-
-  for (let i = 0; i <= totalBands; i++) {
-    const yLine = bottom - i * bandHeight;
-    ctx.beginPath();
-    ctx.moveTo(centerX - radius, yLine);
-    ctx.lineTo(centerX + radius, yLine);
-    ctx.stroke();
-  }
-
+  
+  // Close shape
+  ctx.closePath();
+  
+  // Fill only one side
+  ctx.fillStyle = fillColor;
+  ctx.fill();
   ctx.restore();
 
   // --- Outer border ---
