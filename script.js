@@ -1,6 +1,3 @@
-/*
-  This is a good version, before adding rim save it and with two sankalpams
-*/
 const varsham_data = {
   PBV: {name: "Prabhava",previous: "Akshaya",next: "Vibhava"},
   VBV: {name: "Vibhava",previous: "Prabhava",next: "Shukla"},
@@ -800,7 +797,6 @@ function drawPakshamDegreesPie({ thithiCode, elapsedMs, remainingMs, paksham }) 
   const pakshamLabel = isKrishna ? "Krishna" : "Shukla";
 
   // --- Clip to circle ---
-  ctx.save();
   ctx.beginPath();
   ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
   ctx.clip();
@@ -815,42 +811,41 @@ function drawPakshamDegreesPie({ thithiCode, elapsedMs, remainingMs, paksham }) 
   const bottom = centerY + radius;
 
   ctx.fillStyle = fillColor;
+  // --- Step 1: draw full background (dark or light)
+ctx.fillStyle = bgColor;
+ctx.beginPath();
+ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+ctx.fill();
 
-    // --- Moon shape ---
-  ctx.beginPath();
-  
-  // Full circle
-  ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-  
-  // Compute phase
-  let phase = (localIndex - 1 + fraction) / 14; // 0 → 1
-  let curveStrength = Math.cos(phase * Math.PI);
-  
-  if (isKrishna) {
-    curveStrength *= -1;
-  }
-  
-  // Control point (this creates curvature)
-  const offset = curveStrength * radius * 0.8;
-  
-  ctx.moveTo(centerX, centerY - radius);
-  
-  // Draw curved divider
-  ctx.quadraticCurveTo(
-    centerX + offset,
-    centerY,
-    centerX,
-    centerY + radius
-  );
-  
-  // Close shape
-  ctx.closePath();
-  
-  // Fill only one side
-  ctx.fillStyle = fillColor;
-  ctx.fill();
-  ctx.restore();
+// --- Step 2: draw curved illuminated portion
+ctx.beginPath();
 
+// phase 0 → 1
+let phase = (localIndex - 1 + fraction) / 14;
+
+// convert to -1 → +1
+let k = Math.cos(phase * Math.PI);
+
+// flip for Krishna
+if (isKrishna) k *= -1;
+
+// horizontal offset
+let dx = k * radius;
+
+// draw ellipse-like shape using arc trick
+ctx.arc(centerX + dx, centerY, radius, 0, 2 * Math.PI);
+
+// clip with main circle
+ctx.globalCompositeOperation = "source-in";
+
+ctx.beginPath();
+ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+ctx.fillStyle = fillColor;
+ctx.fill();
+
+// reset
+ctx.globalCompositeOperation = "source-over";
+  
   // --- Outer border ---
   ctx.beginPath();
   ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
