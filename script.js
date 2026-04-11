@@ -785,54 +785,44 @@ function drawPakshamDegreesPie({ thithiCode, elapsedMs, remainingMs, paksham }) 
   const centerX = canvas.width / 2;
   const centerY = canvas.height / 2 - 20;
 
-  // --- Paksham ---
   const isKrishna = (paksham === "KRI");
-
-  // Map to 1–15
   const localIndex = tIndex <= 15 ? tIndex : (tIndex - 15);
 
-  // Smooth progression within thithi
-  const progress = (localIndex - 1 + fraction) / 15;
+  // Smooth progress (0 → 1 across paksham)
+  let progress = (localIndex - 1 + fraction) / 14;
 
   // --- Colors ---
   const white = "#FFFFFF";
   const black = "#000000";
 
+  const baseColor = isKrishna ? white : black;
+  const fillColor = isKrishna ? black : white;
+
   // --- Base circle ---
   ctx.beginPath();
   ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-
-  if (isKrishna) {
-    ctx.fillStyle = white; // start white
-  } else {
-    ctx.fillStyle = black; // start black
-  }
+  ctx.fillStyle = baseColor;
   ctx.fill();
 
-  // --- Clip to circle ---
+  // --- Create curved boundary using shifted circle ---
   ctx.save();
+
+  // Clip to main circle
   ctx.beginPath();
   ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
   ctx.clip();
 
-  // --- Fill from bottom ---
-  const fillHeight = 2 * radius * progress;
-  const bottomY = centerY + radius;
+  // Map progress → vertical shift (-radius to +radius)
+  let shift = (1 - 2 * progress) * radius;
 
-  if (isKrishna) {
-    // black grows upward
-    ctx.fillStyle = black;
-  } else {
-    // white grows upward
-    ctx.fillStyle = white;
-  }
+  // 🔥 Flip direction so growth is bottom → top
+  shift = -shift;
 
-  ctx.fillRect(
-    centerX - radius,
-    bottomY - fillHeight,
-    radius * 2,
-    fillHeight
-  );
+  // Draw secondary circle
+  ctx.beginPath();
+  ctx.arc(centerX, centerY + shift, radius, 0, 2 * Math.PI);
+  ctx.fillStyle = fillColor;
+  ctx.fill();
 
   ctx.restore();
 
