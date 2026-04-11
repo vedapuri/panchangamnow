@@ -788,7 +788,7 @@ function drawPakshamDegreesPie({ thithiCode, elapsedMs, remainingMs, paksham }) 
   // --- Paksham ---
   const isKrishna = (paksham === "KRI");
 
-  // Always map to 1–15 within paksham
+  // Map to 1–15
   const localIndex = tIndex <= 15 ? tIndex : (tIndex - 15);
 
   // --- Colors ---
@@ -796,60 +796,39 @@ function drawPakshamDegreesPie({ thithiCode, elapsedMs, remainingMs, paksham }) 
   const bgColor     = isKrishna ? "#FFFFFF" : "#000000";
   const pakshamLabel = isKrishna ? "Krishna" : "Shukla";
 
-  // --- Background ---
+  // --- Step 1: base circle (dark side) ---
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
   ctx.fillStyle = bgColor;
-  ctx.fillRect(centerX - radius, centerY - radius, radius * 2, radius * 2);
+  ctx.fill();
 
-  // --- Bands ---
-  const totalBands = 15;
-  const bandHeight = (radius * 2) / totalBands;
-  const bottom = centerY + radius;
+  // --- Step 2: compute phase ---
+  let phase = (localIndex - 1 + fraction) / 14;
 
+  if (isKrishna) {
+    phase = 1 - phase;
+  }
+
+  let k = Math.cos(phase * Math.PI);
+
+  // ✅ vertical (bottom → top)
+  let dy = -k * radius;
+
+  // --- Step 3: draw light circle ---
+  ctx.beginPath();
+  ctx.arc(centerX, centerY + dy, radius, 0, 2 * Math.PI);
   ctx.fillStyle = fillColor;
-// --- Step 1: draw full background
-ctx.fillStyle = bgColor;
-ctx.beginPath();
-ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-ctx.fill();
+  ctx.fill();
 
-// --- Step 2: draw shifted circle (moon light)
-ctx.globalCompositeOperation = "source-over";
+  // --- Step 4: clip to main circle ---
+  ctx.globalCompositeOperation = "destination-in";
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+  ctx.fill();
 
-ctx.beginPath();
+  ctx.globalCompositeOperation = "source-over";
 
-let phase = (localIndex - 1 + fraction) / 14;
-
-// 🔁 Flip phase for Krishna
-if (isKrishna) {
-  phase = 1 - phase;
-}
-
-let phase = (localIndex - 1 + fraction) / 14;
-
-if (isKrishna) {
-  phase = 1 - phase;
-}
-
-let k = Math.cos(phase * Math.PI);
-
-// 🔥 THIS is the key fix
-let dy = -k * radius;
-
-// Draw light portion
-ctx.beginPath();
-ctx.arc(centerX, centerY + dy, radius, 0, 2 * Math.PI);
-ctx.fillStyle = "#FFFFFF";
-ctx.fill();
-// --- Step 3: clip to main circle
-ctx.globalCompositeOperation = "destination-in";
-
-ctx.beginPath();
-ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-ctx.fill();
-
-// reset
-ctx.globalCompositeOperation = "source-over";  
-  // --- Outer border ---
+  // --- Border ---
   ctx.beginPath();
   ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
   ctx.strokeStyle = "#333";
@@ -861,10 +840,10 @@ ctx.globalCompositeOperation = "source-over";
   ctx.textAlign = "center";
 
   const thithiName =
-  ELEMENT_DEFINITIONS.thithi.mapping[thithiCode]?.name || localIndex;
+    ELEMENT_DEFINITIONS.thithi.mapping[thithiCode]?.name || localIndex;
 
   ctx.fillText(
-  `${pakshamLabel} Paksham - Thithi ${thithiName} in progress`,
+    `${pakshamLabel} Paksham - Thithi ${thithiName} in progress`,
     centerX,
     centerY + radius + 36
   );
