@@ -824,14 +824,22 @@ if (isKrishna) {
   phase = 1 - phase;
 }
 
+let phase = (localIndex - 1 + fraction) / 14;
+
+if (isKrishna) {
+  phase = 1 - phase;
+}
+
 let k = Math.cos(phase * Math.PI);
-let dy = k * radius;
 
-// Draw the light portion
+// 🔥 THIS is the key fix
+let dy = -k * radius;
+
+// Draw light portion
+ctx.beginPath();
 ctx.arc(centerX, centerY + dy, radius, 0, 2 * Math.PI);
-ctx.fillStyle = fillColor;
+ctx.fillStyle = "#FFFFFF";
 ctx.fill();
-
 // --- Step 3: clip to main circle
 ctx.globalCompositeOperation = "destination-in";
 
