@@ -791,42 +791,50 @@ function drawPakshamDegreesPie({ thithiCode, elapsedMs, remainingMs, paksham }) 
   // Map to 1–15
   const localIndex = tIndex <= 15 ? tIndex : (tIndex - 15);
 
-  // --- Colors ---
-  const fillColor   = isKrishna ? "#000000" : "#FFFFFF";
-  const bgColor     = isKrishna ? "#FFFFFF" : "#000000";
-  const pakshamLabel = isKrishna ? "Krishna" : "Shukla";
+  // Smooth progression within thithi
+  const progress = (localIndex - 1 + fraction) / 15;
 
-  // --- Step 1: base circle (dark side) ---
+  // --- Colors ---
+  const white = "#FFFFFF";
+  const black = "#000000";
+
+  // --- Base circle ---
   ctx.beginPath();
   ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-  ctx.fillStyle = bgColor;
-  ctx.fill();
-
-  // --- Step 2: compute phase ---
-  let phase = (localIndex - 1 + fraction) / 14;
 
   if (isKrishna) {
-    phase = 1 - phase;
+    ctx.fillStyle = white; // start white
+  } else {
+    ctx.fillStyle = black; // start black
   }
-
-  let k = Math.cos(phase * Math.PI);
-
-  // ✅ vertical (bottom → top)
-  let dy = -k * radius;
-
-  // --- Step 3: draw light circle ---
-  ctx.beginPath();
-  ctx.arc(centerX, centerY + dy, radius, 0, 2 * Math.PI);
-  ctx.fillStyle = fillColor;
   ctx.fill();
 
-  // --- Step 4: clip to main circle ---
-  ctx.globalCompositeOperation = "destination-in";
+  // --- Clip to circle ---
+  ctx.save();
   ctx.beginPath();
   ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-  ctx.fill();
+  ctx.clip();
 
-  ctx.globalCompositeOperation = "source-over";
+  // --- Fill from bottom ---
+  const fillHeight = 2 * radius * progress;
+  const bottomY = centerY + radius;
+
+  if (isKrishna) {
+    // black grows upward
+    ctx.fillStyle = black;
+  } else {
+    // white grows upward
+    ctx.fillStyle = white;
+  }
+
+  ctx.fillRect(
+    centerX - radius,
+    bottomY - fillHeight,
+    radius * 2,
+    fillHeight
+  );
+
+  ctx.restore();
 
   // --- Border ---
   ctx.beginPath();
@@ -839,6 +847,7 @@ function drawPakshamDegreesPie({ thithiCode, elapsedMs, remainingMs, paksham }) 
   ctx.font = "16px Arial";
   ctx.textAlign = "center";
 
+  const pakshamLabel = isKrishna ? "Krishna" : "Shukla";
   const thithiName =
     ELEMENT_DEFINITIONS.thithi.mapping[thithiCode]?.name || localIndex;
 
