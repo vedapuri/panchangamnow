@@ -789,7 +789,7 @@ function drawPakshamDegreesPie({ thithiCode, elapsedMs, remainingMs, paksham }) 
   const localIndex = tIndex <= 15 ? tIndex : (tIndex - 15);
 
   // Smooth progress (0 → 1 across paksham)
-  let progress = (localIndex - 1 + fraction) / 14;
+  let progress = (localIndex - 1 + fraction) / 15;
 
   // --- Colors ---
   const white = "#FFFFFF";
