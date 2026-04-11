@@ -617,8 +617,7 @@ async function loadElementData(def_element, nowUTC) {
         });
         tryRenderCombinedExtras();
       }
-      const nextItems = getNextTwoRows(lines, idx, def_element, nowUTC);
-      const nextItemsHtml = buildNextItemsTable(nextItems);
+
       
       // -------------------------------
       // Main block rendering (unchanged)
@@ -636,7 +635,7 @@ async function loadElementData(def_element, nowUTC) {
         pieLabel: def_element.pieLabel,
         containerId: def_element.containerId,
         elapsedColor: pieColors.elapsed,
-        remainingColor: pieColors.remaining,nextItemsHtml
+        remainingColor: pieColors.remaining
       });
         
       return;
@@ -656,42 +655,7 @@ async function loadElementData(def_element, nowUTC) {
 /***********************
  * HELPER functions
  ***********************/
-function getNextTwoRows(lines, idx, def_element, nowUTC) {
-  const results = [];
-  let foundCurrent = false;
 
-  for (let i = 1; i < lines.length; i++) {
-    const cols = lines[i].split(",").map(c => c.trim().replace(/\r$/, ""));
-
-    const fromUTC = parseUTC(cols, idx, def_element.fromPrefix);
-    const toUTC   = parseUTC(cols, idx, def_element.toPrefix);
-
-    if (!fromUTC || !toUTC) continue;
-
-    const isCurrent = (nowUTC >= fromUTC && nowUTC < toUTC);
-
-    // mark when we pass current slot
-    if (isCurrent) {
-      foundCurrent = true;
-      continue; // 🚫 skip current row
-    }
-
-    // only start collecting AFTER current
-    if (foundCurrent && results.length < 2) {
-      const code = cols[idx(def_element.codeColumn)]?.trim();
-      const info = def_element.mapping[code] ?? {};
-      const name = info.name ?? code;
-
-      results.push({
-        name,
-        from: new Date(fromUTC),
-        to: new Date(toUTC)
-      });
-    }
-  }
-
-  return results;
-}
 // -------------------------------
       // This ensures rendering happens only when BOTH are loaded
       // -------------------------------
@@ -782,8 +746,7 @@ function renderElementBlock({
   pieLabel,
   containerId, 
   elapsedColor,
-  remainingColor,
-  nextItemsHtml 
+  remainingColor 
 }) {
   const container = document.getElementById(containerId);
   if (!container) return;
@@ -796,7 +759,6 @@ function renderElementBlock({
       Elapsed time: ${elapsedStr}<br>
       <b>Remaining time: ${remainingStr}</b><br>
       <canvas id="${canvasId}" width="450" height="400" style="margin-top:10px;"></canvas>
-      <canvas id="${canvasId}" width="450" height="400"
     `;
 
   drawTimePie(canvasId, elapsedMs, remainingMs, pieLabel, elapsedColor,
