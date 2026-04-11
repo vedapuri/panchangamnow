@@ -818,10 +818,13 @@ ctx.globalCompositeOperation = "source-over";
 ctx.beginPath();
 
 let phase = (localIndex - 1 + fraction) / 14;
+
+// 🔁 Flip phase for Krishna
+if (isKrishna) {
+  phase = 1 - phase;
+}
+
 let k = Math.cos(phase * Math.PI);
-
-if (isKrishna) k *= -1;
-
 let dy = k * radius;
 
 // Draw the light portion
