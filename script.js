@@ -726,6 +726,14 @@ function renderElementTable(def, lines, headers, index) {
   };
 
   const containerId = containerMap[def.key];
+  console.log("Rendering table for:", def.key, "→", containerId);
+
+  const container = document.getElementById(containerId);
+
+  if (!container) {
+    console.error("❌ Missing container:", containerId);
+    return;
+  }
   const container = document.getElementById(containerId);
   if (!container) return;
 
