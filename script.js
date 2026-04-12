@@ -149,7 +149,12 @@ Thursday: {name: "Guru"},
 Friday: {name: "Bhrugu"},
 Saturday: {name: "Sthira"}
 };
-
+const ELEMENT_INDEX_STORE = {
+  thithi: null,
+  nakshatram: null,
+  yogam: null,
+  karanam: null
+};
 /***********************
  * COLOUR DEFINITIONS
  ***********************/
@@ -539,29 +544,39 @@ async function loadElementData(def_element, nowUTC) {
   const headers = lines[0].split(",").map(h => h.trim());
   const idx = name => headers.indexOf(name);
 
-  for (const line of lines.slice(1)) {
-    const cols = line.split(",").map(c => c.trim().replace(/\r$/, ""));
-  
-    const fromUTC = parseUTC(cols, idx, def_element.fromPrefix);
-    const toUTC   = parseUTC(cols, idx, def_element.toPrefix);
+  for (let i = 1; i < lines.length; i++) {
+  const line = lines[i];
 
-    if (fromUTC == null || toUTC == null) continue;
-      if (nowUTC >= fromUTC && nowUTC < toUTC) {
+  const cols = line.split(",").map(c => c.trim().replace(/\r$/, ""));
 
-        const code = cols[idx(def_element.codeColumn)]?.trim();
-        const info = def_element.mapping[code] ?? {};
-        const name = info.name ?? code;
-        const previous = info.previous ?? "—";
-        const next = info.next ?? "—";
+  const fromUTC = parseUTC(cols, idx, def_element.fromPrefix);
+  const toUTC   = parseUTC(cols, idx, def_element.toPrefix);
 
-        const elapsedMs   = nowUTC - fromUTC;
-        const remainingMs = toUTC - nowUTC;
+  if (fromUTC == null || toUTC == null) continue;
 
-        const pieColors = ELEMENT_COLORS[def_element.key] || {
-          elapsed: "#FFB6C1",
-          remaining: "#e0e0e0"
-        };
+  if (nowUTC >= fromUTC && nowUTC < toUTC) {
 
+    // ✅ NEW: store index
+    ELEMENT_INDEX_STORE[def_element.key] = i;
+
+    const code = cols[idx(def_element.codeColumn)]?.trim();
+    const info = def_element.mapping[code] ?? {};
+    const name = info.name ?? code;
+    const previous = info.previous ?? "—";
+    const next = info.next ?? "—";
+
+    const elapsedMs   = nowUTC - fromUTC;
+    const remainingMs = toUTC - nowUTC;
+
+    const pieColors = ELEMENT_COLORS[def_element.key] || {
+      elapsed: "#FFB6C1",
+      remaining: "#e0e0e0"
+    };
+
+    // ✅ NEW: render table
+    renderElementTable(def_element, lines, headers, i);
+
+    // ⛔ IMPORTANT: keep your existing logic below this unchanged
       // -------------------------------
       // Resolve extra lookups (generic)
       // -------------------------------
@@ -701,7 +716,49 @@ async function loadElementData(def_element, nowUTC) {
         }
 
 
+function renderElementTable(def, lines, headers, index) {
 
+  const containerMap = {
+    thithi: "thithiTableBox",
+    nakshatram: "nakshatramTableBox",
+    yogam: "yogamTableBox",
+    karanam: "karanamTableBox"
+  };
+
+  const containerId = containerMap[def.key];
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  // Take current + next row (safe)
+  const rowsToShow = [
+    lines[index],
+    lines[index + 1]
+  ].filter(Boolean);
+
+  let html = `<b>${def.title} - Table View</b><br><br>`;
+  html += `<table border="1" cellpadding="5" cellspacing="0">`;
+
+  // Header
+  html += "<tr>";
+  headers.forEach(h => {
+    html += `<th>${h}</th>`;
+  });
+  html += "</tr>";
+
+  // Rows
+  rowsToShow.forEach(line => {
+    const cols = line.split(",");
+    html += "<tr>";
+    cols.forEach(c => {
+      html += `<td>${c}</td>`;
+    });
+    html += "</tr>";
+  });
+
+  html += "</table>";
+
+  container.innerHTML = html;
+}
 function parseUTC(cols, idx, prefix) {
   const dateIdx = idx(prefix + "_date");
   const hourIdx = idx(prefix + "_hour");
