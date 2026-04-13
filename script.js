@@ -726,40 +726,82 @@ function renderElementTable(def, lines, headers, index) {
   };
 
   const containerId = containerMap[def.key];
-  console.log("Rendering table for:", def.key, "→", containerId);
-
-  const container = document.getElementById(containerId);
-
-  if (!container) {
-    console.error("❌ Missing container:", containerId);
-    return;
-  }
   const container = document.getElementById(containerId);
   if (!container) return;
 
-  // Take current + next row (safe)
+  const idx = name => headers.indexOf(name);
+
+  // ✅ Take 3 rows: current + next + next+1
   const rowsToShow = [
     lines[index],
-    lines[index + 1]
+    lines[index + 1],
+    lines[index + 2]
   ].filter(Boolean);
 
-  let html = `<b>${def.title} - Table View</b><br><br>`;
-  html += `<table border="1" cellpadding="5" cellspacing="0">`;
+  let html = `<b>${def.title} - Detailed View</b><br><br>`;
+  html += `<table border="1" cellpadding="6" cellspacing="0">`;
 
-  // Header
+  // -------------------------------
+  // HEADER (CUSTOM)
+  // -------------------------------
   html += "<tr>";
-  headers.forEach(h => {
-    html += `<th>${h}</th>`;
-  });
+
+  if (def.key === "thithi") {
+    html += `<th></th><th>Paksham</th><th>Thithi</th><th>Start</th><th>End</th>`;
+  } else {
+    html += `<th></th><th>Name</th><th>Start</th><th>End</th>`;
+  }
+
   html += "</tr>";
 
-  // Rows
-  rowsToShow.forEach(line => {
-    const cols = line.split(",");
+  // -------------------------------
+  // ROWS
+  // -------------------------------
+  rowsToShow.forEach((line, i) => {
+    const cols = line.split(",").map(c => c.trim());
+
+    const fromUTC = parseUTC(cols, idx, def.fromPrefix);
+    const toUTC   = parseUTC(cols, idx, def.toPrefix);
+
+    const fromLocal = fromUTC ? new Date(fromUTC).toLocaleString() : "—";
+    const toLocal   = toUTC ? new Date(toUTC).toLocaleString() : "—";
+
+    const code = cols[idx(def.codeColumn)]?.trim();
+    const info = def.mapping[code] ?? {};
+    const name = info.name ?? code ?? "—";
+
+    // Row label
+    let label = "";
+    if (i === 0) label = "Current";
+    else if (i === 1) label = "Next";
+    else label = "Next+1";
+
     html += "<tr>";
-    cols.forEach(c => {
-      html += `<td>${c}</td>`;
-    });
+
+    // First column (label)
+    html += `<td><b>${label}</b></td>`;
+
+    if (def.key === "thithi") {
+      // Paksham
+      const pakCol = def.extraLookups?.paksham?.column;
+      let pakName = "—";
+
+      if (pakCol) {
+        const pakCode = cols[idx(pakCol)];
+        pakName = paksham_data[pakCode]?.name ?? pakCode ?? "—";
+      }
+
+      html += `<td>${pakName}</td>`;
+      html += `<td>${name}</td>`;
+      html += `<td>${fromLocal}</td>`;
+      html += `<td>${toLocal}</td>`;
+
+    } else {
+      html += `<td>${name}</td>`;
+      html += `<td>${fromLocal}</td>`;
+      html += `<td>${toLocal}</td>`;
+    }
+
     html += "</tr>";
   });
 
@@ -767,6 +809,7 @@ function renderElementTable(def, lines, headers, index) {
 
   container.innerHTML = html;
 }
+
 function parseUTC(cols, idx, prefix) {
   const dateIdx = idx(prefix + "_date");
   const hourIdx = idx(prefix + "_hour");
