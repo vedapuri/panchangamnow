@@ -738,7 +738,7 @@ function renderElementTable(def, lines, headers, index) {
     lines[index + 2]
   ].filter(Boolean);
 
-  let html = `<b>${def.title} - Detailed View</b><br><br>`;
+  let html = `<b>${def.title} - Current plus next two names and times</b><br><br>`;
   html += `<table border="1" cellpadding="6" cellspacing="0">`;
 
   // -------------------------------
