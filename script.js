@@ -424,7 +424,7 @@ const THITHI_INDEX = {
   PRA: 1, DWI: 2, TRU: 3, CHA: 4, PAN: 5,
   SHA: 6, SAP: 7, ASH: 8, NAV: 9, DAS: 10,
   EKA: 11, DWA: 12, TRY: 13, CHD: 14,
-  POU: 15, AMA: 30
+  POU: 15, AMA: 15
 };
 const CACHE_BUSTER = "?v=" + Date.now();
 // ---- GLOBAL TIME SETUP (runs once) ----
@@ -894,7 +894,7 @@ function drawPakshamDegreesPie({ thithiCode, elapsedMs, remainingMs, paksham }) 
   const centerY = canvas.height / 2 - 20;
 
   const isKrishna = (paksham === "KRI");
-  const localIndex = tIndex <= 15 ? tIndex : (tIndex - 15);
+  const localIndex = tIndex; // always 1–15 now
 
   // Smooth progress (0 → 1 across paksham)
   let progress = (localIndex - 1 + fraction) / 15;
