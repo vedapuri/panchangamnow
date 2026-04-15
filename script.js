@@ -921,10 +921,7 @@ function drawPakshamDegreesPie({ thithiCode, elapsedMs, remainingMs, paksham }) 
   ctx.clip();
 
   // Map progress → vertical shift (-radius to +radius)
-  let shift = (1 - 2 * progress) * radius;
-
-  // 🔥 Flip direction so growth is bottom → top
-  shift = -shift;
+  let shift = (2 * progress - 1) * radius;
 
   // Draw secondary circle
   ctx.beginPath();
