@@ -252,7 +252,7 @@ const ELEMENT_DEFINITIONS = {
   EKA: { name: "Ekadashi", previous: "Dashami", next: "Dwadashi" },
   DWA: { name: "Dwadashi", previous: "Ekadashi", next: "Tryodashi" },
   TRY: { name: "Tryodashi", previous: "Dwadashi", next: "Chathurdashi" },
-  CHD: { name: "Chathurdashi", previous: "Tryodashi", next: null },
+  CHD: { name: "Chathurdashi", previous: "Tryodashi", next: "Pournamaasi" },
   POU: { name: "Pournamaasi", previous: "Chathurdashi", next: "Prathama" },
   AMA: { name: "Amaavaasya", previous: "Chathurdashi", next: "Prathama" }
 }
