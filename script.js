@@ -920,17 +920,24 @@ function drawPakshamDegreesPie({ thithiCode, elapsedMs, remainingMs, paksham }) 
   ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
   ctx.clip();
 
-  // Map progress → vertical shift (-radius to +radius)
+  // Map progress to -radius → +radius (horizontal)
   let shift = (2 * progress - 1) * radius;
-
-  // Draw secondary circle
+  
+  // Draw illuminated portion using horizontal clipping
+  ctx.save();
+  
+  // Clip to main circle
   ctx.beginPath();
-  ctx.arc(centerX, centerY + shift, radius, 0, 2 * Math.PI);
+  ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+  ctx.clip();
+  
+  // Draw rectangle that reveals illumination
+  ctx.beginPath();
+  ctx.rect(centerX - radius, centerY - radius, radius + shift, 2 * radius);
   ctx.fillStyle = fillColor;
   ctx.fill();
-
+  
   ctx.restore();
-
   // --- Border ---
   ctx.beginPath();
   ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
