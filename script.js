@@ -929,8 +929,8 @@ ctx.arc(0, 0, radius, 0, 2 * Math.PI);
 ctx.clip();
 
 // Map progress: -radius → +radius
-let shift = (2 * progress - 1) * radius;
-  
+let shift = (2 * progress - 1) * radius * 0.98;
+
 // Draw curved illuminated portion using arc
 ctx.beginPath();
 
