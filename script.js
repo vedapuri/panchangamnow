@@ -921,7 +921,7 @@ function drawPakshamDegreesPie({ thithiCode, elapsedMs, remainingMs, paksham }) 
   ctx.clip();
 
   // Map progress to -radius → +radius (horizontal)
-  let shift = (2 * progress - 1) * radius;
+  
   
   // Draw illuminated portion using horizontal clipping
   ctx.save();
