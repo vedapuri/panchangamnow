@@ -913,31 +913,30 @@ function drawPakshamDegreesPie({ thithiCode, elapsedMs, remainingMs, paksham }) 
   ctx.fill();
 
   // --- Create curved boundary using shifted circle ---
-  ctx.save();
+  // --- Illuminated portion (clean version) ---
+ctx.save();
 
-  // Clip to main circle
-  ctx.beginPath();
-  ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-  ctx.clip();
-
-  // Map progress to -radius → +radius (horizontal)
-  
-  
-  // Draw illuminated portion using horizontal clipping
-  ctx.save();
-  
-  // Clip to main circle
-  ctx.beginPath();
-  ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-  ctx.clip();
-  
-  ctx.save();
-
-// Move origin to center
+// Move origin to center FIRST
 ctx.translate(centerX, centerY);
 
-// Rotate canvas so left-right becomes bottom-right → top-left diagonal
-ctx.rotate(-Math.PI / 4); // 45° counter-clockwise
+// Rotate for SE → NW direction
+ctx.rotate(-Math.PI / 4); // 45°
+
+// Clip to circle ONCE (after transform)
+ctx.beginPath();
+ctx.arc(0, 0, radius, 0, 2 * Math.PI);
+ctx.clip();
+
+// Map progress: -radius → +radius
+let shift = (2 * progress - 1) * radius;
+
+// Draw rectangle (in rotated space)
+ctx.beginPath();
+ctx.rect(-radius, -radius, radius + shift, 2 * radius);
+ctx.fillStyle = fillColor;
+ctx.fill();
+
+ctx.restore();
 
 // Map progress (same as before)
 let shift = (2 * progress - 1) * radius;
