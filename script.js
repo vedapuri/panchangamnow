@@ -889,78 +889,76 @@ function drawPakshamDegreesPie({ thithiCode, elapsedMs, remainingMs, paksham }) 
   const fraction = elapsedMs / totalMs;
 
   // --- Geometry ---
-const radius  = Math.min(canvas.width, canvas.height) * 0.25;
-const centerX = canvas.width / 2;
-const centerY = canvas.height / 2 - 20;
+  const radius  = Math.min(canvas.width, canvas.height) * 0.25;
+  const centerX = canvas.width / 2;
+  const centerY = canvas.height / 2 - 20;
 
-const isKrishna = (paksham === "KRI");
-const localIndex = tIndex; // 1–15
+  const isKrishna = (paksham === "KRI");
+  const localIndex = tIndex; // always 1–15 now
 
-// --- Progress across paksham (0 → 1 over 15 tithis) ---
-let progress = (localIndex - 1 + fraction) / 15;
-progress = Math.max(0, Math.min(1, progress)); // safety clamp
+  // Smooth progress (0 → 1 across paksham)
+  let progress = (localIndex - 1 + fraction) / 15;
 
-// --- Colors ---
-const baseColor = isKrishna ? "#FFFFFF" : "#000000";
-const fillColor = isKrishna ? "#000000" : "#FFFFFF";
+  // --- Colors ---
+  const white = "#FFFFFF";
+  const black = "#000000";
 
-// --- background circle ---
-ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const baseColor = isKrishna ? white : black;
+  const fillColor = isKrishna ? black : white;
 
-ctx.beginPath();
-ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-ctx.fillStyle = baseColor;
-ctx.fill();
+  // --- Base circle ---
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+  ctx.fillStyle = baseColor;
+  ctx.fill();
 
-// --- rotation for SE → NW tilt ---
+  // --- Create curved boundary using shifted circle ---
+  // --- Illuminated portion (clean version) ---
+// --- Illuminated portion (fixed & clean) ---
 ctx.save();
+
+// Move origin to center
 ctx.translate(centerX, centerY);
-ctx.rotate(Math.PI / 4);
 
-// =====================================================
-// FIXED CRESCENT LOGIC (REPLACES BROKEN ARC METHOD)
-// =====================================================
+// Rotate for SE → NW direction
+ctx.rotate(5 * Math.PI / 4);
 
-// shift ranges from -radius → +radius
-let shift = (progress * 2 - 1) * radius;
-
-// Krishna reverses direction
-if (isKrishna) shift = -shift;
-
-// --- draw full lit circle ---
+// Clip to circle
 ctx.beginPath();
 ctx.arc(0, 0, radius, 0, 2 * Math.PI);
-ctx.fillStyle = fillColor;
-ctx.fill();
+ctx.clip();
 
-// --- carve shadow using offset circle ---
+// Map progress: -radius → +radius
+let shift = (2 * progress - 1) * radius;
+
+// Draw illuminated portion
 ctx.beginPath();
-ctx.arc(shift, 0, radius, 0, 2 * Math.PI);
-ctx.fillStyle = baseColor;
+ctx.rect(-radius, -radius, radius + shift, 2 * radius);
+ctx.fillStyle = fillColor;
 ctx.fill();
 
 ctx.restore();
 
-// --- border ---
-ctx.beginPath();
-ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-ctx.strokeStyle = "#333";
-ctx.stroke();
+  // --- Border ---
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+  ctx.strokeStyle = "#333";
+  ctx.stroke();
 
-// --- label ---
-ctx.fillStyle = "#000";
-ctx.font = "16px Arial";
-ctx.textAlign = "center";
+  // --- Label ---
+  ctx.fillStyle = "#000";
+  ctx.font = "16px Arial";
+  ctx.textAlign = "center";
 
-const pakshamLabel = isKrishna ? "Krishna" : "Shukla";
-const thithiName =
-  ELEMENT_DEFINITIONS.thithi.mapping[thithiCode]?.name || localIndex;
+  const pakshamLabel = isKrishna ? "Krishna" : "Shukla";
+  const thithiName =
+    ELEMENT_DEFINITIONS.thithi.mapping[thithiCode]?.name || localIndex;
 
-ctx.fillText(
-  `${pakshamLabel} Paksham - Thithi ${thithiName} in progress`,
-  centerX,
-  centerY + radius + 36
-);
+  ctx.fillText(
+    `${pakshamLabel} Paksham - Thithi ${thithiName} in progress`,
+    centerX,
+    centerY + radius + 36
+  );
 }
 /***********************
  * PIE CHART
