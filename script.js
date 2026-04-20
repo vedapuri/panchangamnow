@@ -912,39 +912,39 @@ function drawPakshamDegreesPie({ thithiCode, elapsedMs, remainingMs, paksham }) 
   ctx.fillStyle = baseColor;
   ctx.fill();
 
-  // --- Create curved boundary using shifted circle ---
-  // --- Illuminated portion (clean version) ---
-// --- Illuminated portion (fixed & clean) ---
-ctx.save();
+  ctx.save();
 
-// Move origin to center
+// Move to center
 ctx.translate(centerX, centerY);
 
-// Rotate for SE → NW direction
+// Rotate for SE → NW (your requirement)
 ctx.rotate(Math.PI / 4);
 
-// Clip to circle
+// Clip to main circle
 ctx.beginPath();
 ctx.arc(0, 0, radius, 0, 2 * Math.PI);
 ctx.clip();
 
-// Map progress: -radius → +radius
-let shift = (2 * progress - 1) * radius * 0.98;
+// Convert progress (0→1) to phase (-1→1)
+let phase = 2 * progress - 1;
 
-// Draw curved illuminated portion using arc
+// Draw illuminated shape using ellipse
 ctx.beginPath();
+ctx.ellipse(
+  0,                 // center x
+  0,                 // center y
+  radius * Math.abs(phase), // width changes with phase
+  radius,            // full height
+  0,                 // no rotation inside
+  0,
+  2 * Math.PI
+);
 
-// Main circle arc (right side)
-ctx.arc(0, 0, radius, -Math.PI/2, Math.PI/2);
-
-// Opposite curved boundary (shifted circle)
-ctx.arc(shift, 0, radius, Math.PI/2, -Math.PI/2, true);
-
-ctx.closePath();
+// Fill correct side
 ctx.fillStyle = fillColor;
 ctx.fill();
-ctx.restore();
 
+ctx.restore();
   // --- Border ---
   ctx.beginPath();
   ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
