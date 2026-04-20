@@ -931,11 +931,24 @@ function drawPakshamDegreesPie({ thithiCode, elapsedMs, remainingMs, paksham }) 
   ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
   ctx.clip();
   
-  // Draw rectangle that reveals illumination
-  ctx.beginPath();
-  ctx.rect(centerX - radius, centerY - radius, radius + shift, 2 * radius);
-  ctx.fillStyle = fillColor;
-  ctx.fill();
+  ctx.save();
+
+// Move origin to center
+ctx.translate(centerX, centerY);
+
+// Rotate canvas so left-right becomes bottom-right → top-left diagonal
+ctx.rotate(-Math.PI / 4); // 45° counter-clockwise
+
+// Map progress (same as before)
+let shift = (2 * progress - 1) * radius;
+
+// Draw in rotated space
+ctx.beginPath();
+ctx.rect(-radius, -radius, radius + shift, 2 * radius);
+ctx.fillStyle = fillColor;
+ctx.fill();
+
+ctx.restore();
   
   ctx.restore();
   // --- Border ---
