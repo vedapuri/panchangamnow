@@ -917,19 +917,26 @@ ctx.save();
 ctx.translate(centerX, centerY);
 ctx.rotate(Math.PI / 4);
 
-// --- fill arc (robust replacement for ellipse + clipping) ---
-const startAngle = -Math.PI / 2;
+// =====================================================
+// FIXED CRESCENT LOGIC (REPLACES BROKEN ARC METHOD)
+// =====================================================
 
-// Krishna reverses direction (waning)
-const direction = isKrishna ? -1 : 1;
-const endAngle = startAngle + direction * progress * 2 * Math.PI;
+// shift ranges from -radius → +radius
+let shift = (progress * 2 - 1) * radius;
 
+// Krishna reverses direction
+if (isKrishna) shift = -shift;
+
+// --- draw full lit circle ---
 ctx.beginPath();
-ctx.moveTo(0, 0);
-ctx.arc(0, 0, radius, startAngle, endAngle, direction < 0);
-ctx.closePath();
-
+ctx.arc(0, 0, radius, 0, 2 * Math.PI);
 ctx.fillStyle = fillColor;
+ctx.fill();
+
+// --- carve shadow using offset circle ---
+ctx.beginPath();
+ctx.arc(shift, 0, radius, 0, 2 * Math.PI);
+ctx.fillStyle = baseColor;
 ctx.fill();
 
 ctx.restore();
