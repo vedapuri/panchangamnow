@@ -896,68 +896,51 @@ const centerY = canvas.height / 2 - 20;
 const isKrishna = (paksham === "KRI");
 const localIndex = tIndex; // 1–15
 
-// Smooth progress (0 → 1 across paksham)
+// --- Progress across paksham (0 → 1 over 15 tithis) ---
 let progress = (localIndex - 1 + fraction) / 15;
+progress = Math.max(0, Math.min(1, progress)); // safety clamp
 
 // --- Colors ---
-const white = "#FFFFFF";
-const black = "#000000";
+const baseColor = isKrishna ? "#FFFFFF" : "#000000";
+const fillColor = isKrishna ? "#000000" : "#FFFFFF";
 
-const baseColor = isKrishna ? white : black;
-const fillColor = isKrishna ? black : white;
+// --- background circle ---
+ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-// --- Base circle (background) ---
 ctx.beginPath();
 ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
 ctx.fillStyle = baseColor;
 ctx.fill();
 
+// --- rotation for SE → NW tilt ---
 ctx.save();
-
-// Move to center
 ctx.translate(centerX, centerY);
-
-// Rotate for SE → NW tilt
 ctx.rotate(Math.PI / 4);
 
-// Clip to main circle
+// --- fill arc (robust replacement for ellipse + clipping) ---
+const startAngle = -Math.PI / 2;
+
+// Krishna reverses direction (waning)
+const direction = isKrishna ? -1 : 1;
+const endAngle = startAngle + direction * progress * 2 * Math.PI;
+
 ctx.beginPath();
-ctx.arc(0, 0, radius, 0, 2 * Math.PI);
-ctx.clip();
+ctx.moveTo(0, 0);
+ctx.arc(0, 0, radius, startAngle, endAngle, direction < 0);
+ctx.closePath();
 
-// Convert progress (0→1) to phase (-1→1)
-let phase = 2 * progress - 1;
-
-// Flip direction for Krishna so waxing/waning are opposite
-if (isKrishna) {
-  phase = -phase;
-}
-
-// --- STEP 1: draw full illuminated disc ---
-ctx.beginPath();
-ctx.arc(0, 0, radius, 0, 2 * Math.PI);
 ctx.fillStyle = fillColor;
 ctx.fill();
 
-// --- STEP 2: cut shadow using shifted circle ---
-ctx.globalCompositeOperation = "destination-out";
-
-ctx.beginPath();
-ctx.arc(phase * radius, 0, radius, 0, 2 * Math.PI);
-ctx.fill();
-
-// Reset composite
-ctx.globalCompositeOperation = "source-over";
-
 ctx.restore();
 
-// --- Border ---
+// --- border ---
 ctx.beginPath();
 ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
 ctx.strokeStyle = "#333";
 ctx.stroke();
 
-// --- Label ---
+// --- label ---
 ctx.fillStyle = "#000";
 ctx.font = "16px Arial";
 ctx.textAlign = "center";
