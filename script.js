@@ -921,7 +921,7 @@ ctx.save();
 ctx.translate(centerX, centerY);
 
 // Rotate for SE → NW direction
-ctx.rotate(Math.PI /4); //
+ctx.rotate(5 * Math.PI / 4);
 
 // Clip to circle
 ctx.beginPath();
