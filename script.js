@@ -931,12 +931,18 @@ ctx.clip();
 // Map progress: -radius → +radius
 let shift = (2 * progress - 1) * radius;
 
-// Draw illuminated portion
+// Draw curved illuminated portion using arc
 ctx.beginPath();
-ctx.rect(-radius, -radius, radius + shift, 2 * radius);
+
+// Main circle arc (right side)
+ctx.arc(0, 0, radius, -Math.PI/2, Math.PI/2);
+
+// Opposite curved boundary (shifted circle)
+ctx.arc(shift, 0, radius, Math.PI/2, -Math.PI/2, true);
+
+ctx.closePath();
 ctx.fillStyle = fillColor;
 ctx.fill();
-
 ctx.restore();
 
   // --- Border ---
